@@ -11,11 +11,17 @@ Tools::~Tools() {}
 
 VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
                               const vector<VectorXd> &ground_truth) {
-  VectorXd out_vector(1);
-  VectorXd e(4);
-  e << estimations.back() - ground_truth.back(); // Error cvector alculation
-  e = e.array().pow(2); // Compute square of differences
-  out_vector <<  sqrt(e.sum() / e.size()); // Summ all errors
+  VectorXd out_vector(4);
+  VectorXd e(4) ;
+
+  if (estimations.empty() ||  ground_truth.empty()) {
+    out_vector << 0,0,0,0;
+    return out_vector;
+      }
+
+  out_vector << (estimations.back() - ground_truth.back()); // Error cvector alculation
+  out_vector = out_vector.cwiseAbs();  // Compute square of differences
+  //std::cout << out_vector << std::endl;
   return out_vector;
 }
 
