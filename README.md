@@ -77,7 +77,7 @@ using the following settings:
 
 ## Code Style
 
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+Based on [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
 
 ## Generating Additional Data
 
@@ -86,15 +86,6 @@ This is optional!
 If you'd like to generate your own radar and lidar data, see the
 [utilities repo](https://github.com/udacity/CarND-Mercedes-SF-Utilities) for
 Matlab scripts that can generate additional data.
-
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2 (three-term version) or Term 1 (two-term version)
-of CarND. If you are enrolled, see the Project Resources page in the classroom
-for instructions and the project rubric.
 
 ## Hints and Tips!
 
@@ -129,6 +120,5 @@ and how to install it.
 Regardless of the IDE used, every submitted project must
 still be compilable with cmake and make.
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+
 
