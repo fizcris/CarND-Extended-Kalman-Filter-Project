@@ -87,7 +87,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
                   py,
                   0,
                   0;
-
       
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -98,6 +97,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             0;
 
     }
+
+
+    // Initializacion covariance matrix Lidar - Radar (1st iteration)
+    ekf_.P_ <<  1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1000, 0,
+                0, 0, 0, 1000;
 
 
 
