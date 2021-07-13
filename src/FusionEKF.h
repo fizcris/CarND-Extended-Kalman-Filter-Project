@@ -46,7 +46,7 @@ class FusionEKF {
   Eigen::MatrixXd R_laser_; // measurement covariance matrix
   Eigen::MatrixXd R_radar_; // measurement covariance matrix
   Eigen::MatrixXd Hj_; // measurement matrix
-  Eigen::MatrixXd Qv_; // individual process covariance matrix
+  Eigen::MatrixXd Q_; //  process covariance matrix
   Eigen::MatrixXd G_; // time matrix for process covaraince Q
 
   //acceleration noise components

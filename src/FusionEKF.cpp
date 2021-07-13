@@ -22,7 +22,7 @@ FusionEKF::FusionEKF() {
   R_laser_ = MatrixXd(2, 2);
   R_radar_ = MatrixXd(3, 3);
   Hj_ = MatrixXd(3, 4);
-  Qv_ = MatrixXd(2, 2);
+  Q_ = MatrixXd(4, 4);
   G_ = MatrixXd(4, 2);
 
   //measurement covariance matrix - laser
@@ -38,12 +38,6 @@ FusionEKF::FusionEKF() {
   // set the acceleration noise components
   noise_ax = 9;
   noise_ay = 9;
-
-  // set the individual process covariance matrix
-  Qv_ << noise_ax, 0, 
-        0, noise_ay;
-
-
 
 }
 
@@ -131,6 +125,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
 
+  
+
   // Predict state matrix (mean)
   ekf_.F_ <<  1, 0, dt, 0,
               0, 1, 0, dt,
@@ -143,7 +139,15 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
         dt, 0,
         0, dt;
 
-  ekf_.Q_ = G_ * Qv_ * G_.transpose();
+
+  // Predict process variance
+  float dt2 = dt*dt;
+  float dt3 = dt2*dt;
+  float dt4 = dt3*dt;
+  ekf_.Q_<< (dt4*noise_ax/4.0), 0, (dt3*noise_ax/2), 0,
+            0, (dt4*noise_ay/  4), 0, (dt3*noise_ay/2),
+            (dt3*noise_ax/2), 0, (dt2*noise_ax), 0,
+            0, (dt3*noise_ay/2), 0, (dt2*noise_ay);
 
   // Perform prediction of x and P
   ekf_.Predict();
