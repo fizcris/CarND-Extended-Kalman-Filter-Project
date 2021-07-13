@@ -78,4 +78,14 @@ Matlab scripts that can generate additional data.
  * Please note that the ```Eigen``` library does not initialize ```VectorXd``` or ```MatrixXd``` objects with zeros upon creation.
  * Would it be possible to compute RMSE more eficciently rather thna a for loop.
  * Measurements are discarder if they make the denominator nil, so in those steps only the prediction is computed.
+
  
+ ## Effects from radar and Lidar
+
+* When turning Radar off
+  * Speed predcitions get more innacurate
+
+* When turning Lidar off
+  * I guess not much as the covariances in position are quite similar for both sensors
+
+* Note that there is a bug that makes the code get stuck in `h.run()` when the update part of the EKF is turned off (even with only one of them radar/lidar). I believe the simulator stops sending back data for some reaso.
