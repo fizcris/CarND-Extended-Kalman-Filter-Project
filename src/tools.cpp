@@ -18,37 +18,20 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   if (estimations.empty() ||  ground_truth.empty()) {
     out_vector << 0,0,0,0;
     return out_vector;
-      }
+  }
+    // compute RMSE
+  for(int i=0; i < estimations.size(); ++i){
+    VectorXd err_ = estimations[i] - ground_truth[i];
+    err_ = err_.array()*err_.array();
+    out_vector += err_;
+  }
 
-  out_vector << (estimations.back() - ground_truth.back()); // Error cvector alculation
-  out_vector = out_vector.cwiseAbs();  // Compute square of differences
+  // compute the mean
+  out_vector = out_vector/estimations.size();
+
+  // compute the square root
+  out_vector = out_vector.array().sqrt();
+
   //std::cout << out_vector << std::endl;
   return out_vector;
-}
-
-MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-   
-   MatrixXd Hj(3,4);
-  // recover state parameters
-  float px = x_state(0);
-  float py = x_state(1);
-  float vx = x_state(2);
-  float vy = x_state(3);
-
-  // TODO: YOUR CODE HERE 
-
-  // check division by zero
-  if ((px==0) && (py==0)) {
-      std::cout << "Error: px and py are 0" << std::endl << Hj << std::endl;
-    return Hj;
-    };
-     // compute the Jacobian matrix
-    float powerP = pow(px,2) + pow(py,2);
-    float den = sqrt(powerP);
-    
-    Hj << px/den, py/den, 0, 0,
-    -py/powerP, px/powerP, 0, 0,
-    py*(vx*py - vy*px)/pow(powerP,3/2), px*(vy*px - vx*py)/pow(powerP,3/2), px/den, py/den;
- 
-  return Hj;
-}
+} 
