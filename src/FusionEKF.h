@@ -32,8 +32,10 @@ class FusionEKF {
   KalmanFilter ekf_;
 
  private:
+ void CalculateJacobianAndMeas(const Eigen::VectorXd &x_state);
   // check whether the tracking toolbox was initialized or not (first measurement)
   bool is_initialized_;
+  bool err_meas_;
 
   // previous timestamp
   long long previous_timestamp_;
