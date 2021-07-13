@@ -71,17 +71,19 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     ekf_.x_ = VectorXd(4);
     ekf_.P_ = MatrixXd(4,4);
     ekf_.F_ = MatrixXd(4,4);
-    //ekf_.H_ = MatrixXd(2, 4); //It cahnges
+    
+    ekf_.h_ = VectorXd(3); 
     ekf_.Q_ = MatrixXd(4,4);
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-      // TODO: Convert radar from polar to cartesian coordinates 
+      // Convert radar from polar to cartesian coordinates 
       //         and initialize state.
       float rho = measurement_pack.raw_measurements_[0];
       float phi = measurement_pack.raw_measurements_[1];
 
-      float px = sqrt(pow(rho,2)/(1+pow(tan(phi),2)));
-      float py = px * tan(phi);
+      float tanphi = tan(phi);
+      float px = sqrt(pow(rho,2)/(1+pow(tanphi,2)));
+      float py = px * tanphi;
 
       ekf_.x_ <<  px,
                   py,
@@ -100,10 +102,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
 
     // Initializacion covariance matrix Lidar - Radar (1st iteration)
-    ekf_.P_ <<  1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1000, 0,
-                0, 0, 0, 1000;
+     ekf_.P_ <<  1, 0, 0, 0,
+                 0, 1, 0, 0,
+                 0, 0, 10, 0,
+                 0, 0, 0, 10;
 
 
 
@@ -129,10 +131,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   previous_timestamp_ = measurement_pack.timestamp_;
 
   // Predict state matrix (mean)
-  ekf_.F_ << 1, 0, dt, 0,
-        0, 1, 0, dt,
-        0, 0, 1, 0,
-        0, 0, 0, 1;
+  ekf_.F_ <<  1, 0, dt, 0,
+              0, 1, 0, dt,
+              0, 0, 1, 0,
+              0, 0, 0, 1;
 
   // Predict state variance
   G_ << pow(dt, 2.0) / 2.0, 0,
@@ -147,18 +149,22 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   /**
    * Update
-   */
+  */
 
   /**
-   * TODO:
    * - Use the sensor type to perform the update step.
    * - Update the state and covariance matrices.
    */
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-    // TODO: Radar updates
+    // Radar updates
     //update measurement covariance matrix - radar
     ekf_.R_ = R_radar_;
+
+    ekf_.H_ = MatrixXd(3, 4);
+
+    CalculateJacobianAndMeas(ekf_.x_);
+    ekf_.UpdateEKF(measurement_pack.raw_measurements_);
 
 
 
@@ -167,10 +173,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     //update measurement covariance matrix - laser
     ekf_.R_ = R_laser_;
 
-    // measurement matrix
+    
     ekf_.H_ = MatrixXd(2, 4);
+    // Measurement matrix
     ekf_.H_ << 1, 0, 0, 0,
-        0, 1, 0, 0;
+               0, 1, 0, 0;
 
     // Correct states with measurement
     ekf_.Update(measurement_pack.raw_measurements_);
@@ -180,4 +187,36 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   // print the output
   cout << "x_ = " << ekf_.x_ << endl;
   cout << "P_ = " << ekf_.P_ << endl;
+}
+
+void FusionEKF::CalculateJacobianAndMeas(const VectorXd &x_state) {
+
+  // recover state parameters
+  float px = x_state(0);
+  float py = x_state(1);
+  float vx = x_state(2);
+  float vy = x_state(3);
+
+  // check division by zero
+  if ((px==0) && (py==0)) {
+      cout << "Error: px and py are 0" << endl << Hj_ << endl;
+    return;
+    };
+     // compute the Jacobian matrix
+    float powerP = pow(px,2) + pow(py,2);
+    float den = sqrt(powerP);
+    float den2 = pow(den,3);
+    
+    Hj_ << px/den,                     py/den,                      0,      0,
+          -py/powerP,                  px/powerP,                   0,      0,
+          py*(vx*py - vy*px)/den2,     px*(vy*px - vx*py)/den2,     px/den, py/den;
+  
+  //Update measurement vector
+
+  ekf_.h_ << den, atan2(py,px), (px*vx +py*vy) / den;
+  ekf_.h_= ekf_.h_ +  Hj_*x_state;
+  ekf_.H_ =  Hj_;
+
+
+  return;
 }
