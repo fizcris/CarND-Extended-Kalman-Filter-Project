@@ -187,8 +187,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   }
 
   // print the output
-  //cout << "x_ = " << ekf_.x_ << endl;
-  //cout << "P_ = " << ekf_.P_ << endl;
+  cout << "x_ = " << ekf_.x_ << endl;
+  cout << "P_ = " << ekf_.P_ << endl;
 }
 
 void FusionEKF::CalculateJacobianAndMeas(const VectorXd &x_state) {
@@ -201,7 +201,7 @@ void FusionEKF::CalculateJacobianAndMeas(const VectorXd &x_state) {
 
   // check division by zero
   if ((px<0.0001) && (py<0.0001)) {
-      cout << "Error: px and py are 0 - Discarded meas" << endl << endl;
+      //cout << "Error: px and py are 0 - Discarded meas" << endl << endl;
       err_meas_ = true;
     return;
     };
