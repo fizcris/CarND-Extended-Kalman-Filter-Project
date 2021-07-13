@@ -89,3 +89,8 @@ Matlab scripts that can generate additional data.
   * I guess not much as the covariances in position are quite similar for both sensors
 
 * Note that there is a bug that makes the code get stuck in `h.run()` when the update part of the EKF is turned off (even with only one of them radar/lidar). I believe the simulator stops sending back data for some reaso.
+
+
+## Usefull resources
+* [Excellent Kalman tutorial](http://home.wlu.edu/~levys/kalman_tutorial/) 
+* [Good presentation ](http://biorobotics.ri.cmu.edu/papers/sbp_papers/integrated3/kleeman_kalman_basics.pdf)
