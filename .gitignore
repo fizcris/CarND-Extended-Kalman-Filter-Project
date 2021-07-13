@@ -6,6 +6,7 @@ build/
 
 # editor config
 .vscode/
+!ide_profiles/vscode/.vscode
 
 # Xcode
 *.pbxuser
