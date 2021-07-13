@@ -33,10 +33,10 @@ class FusionEKF {
 
 
  private:
-  void CalculateJacobianAndMeas(const Eigen::VectorXd &x_state);
-  
+ void CalculateJacobianAndMeas(const Eigen::VectorXd &x_state);
   // check whether the tracking toolbox was initialized or not (first measurement)
   bool is_initialized_;
+  bool err_meas_;
 
   // previous timestamp
   long long previous_timestamp_;
@@ -45,7 +45,6 @@ class FusionEKF {
   Tools tools;
   Eigen::MatrixXd R_laser_; // measurement covariance matrix
   Eigen::MatrixXd R_radar_; // measurement covariance matrix
-  Eigen::MatrixXd H_laser_; // measurement matrix
   Eigen::MatrixXd Hj_; // measurement matrix
   Eigen::MatrixXd Qv_; // individual process covariance matrix
   Eigen::MatrixXd G_; // time matrix for process covaraince Q

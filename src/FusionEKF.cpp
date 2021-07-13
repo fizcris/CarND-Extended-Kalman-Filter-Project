@@ -3,6 +3,8 @@
 #include "Eigen/Dense"
 #include "tools.h"
 
+
+
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::cout;
@@ -19,7 +21,6 @@ FusionEKF::FusionEKF() {
 
   R_laser_ = MatrixXd(2, 2);
   R_radar_ = MatrixXd(3, 3);
-  H_laser_ = MatrixXd(2, 4);
   Hj_ = MatrixXd(3, 4);
   Qv_ = MatrixXd(2, 2);
   G_ = MatrixXd(4, 2);
@@ -42,10 +43,6 @@ FusionEKF::FusionEKF() {
   Qv_ << noise_ax, 0, 
         0, noise_ay;
 
-  /**
-   * TODO: Finish initializing the FusionEKF.
-   * TODO: Set the process and measurement noises
-   */
 
 
 }
@@ -61,8 +58,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
   if (!is_initialized_) {
     /**
-     * TODO: Initialize the state ekf_.x_ with the first measurement.
-     * TODO: Create the covariance matrix.
+     * Initialize the state ekf_.x_ with the first measurement.
+     * Create & initiallize the covariance matrix.
      * You'll need to convert radar from polar to cartesian coordinates.
      */
 
@@ -71,8 +68,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     ekf_.x_ = VectorXd(4);
     ekf_.P_ = MatrixXd(4,4);
     ekf_.F_ = MatrixXd(4,4);
-    
-    ekf_.h_ = VectorXd(3); 
+
+    //ekf_.H_ = MatrixXd(2, 4); //It cahnges
+    ekf_.h_ = VectorXd(3);
     ekf_.Q_ = MatrixXd(4,4);
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
@@ -80,10 +78,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       //         and initialize state.
       float rho = measurement_pack.raw_measurements_[0];
       float phi = measurement_pack.raw_measurements_[1];
-
       float tanphi = tan(phi);
+      
       float px = sqrt(pow(rho,2)/(1+pow(tanphi,2)));
       float py = px * tanphi;
+
+
 
       ekf_.x_ <<  px,
                   py,
@@ -92,7 +92,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
-      // TODO: Initialize state.
+      //  Initialize state for Laser.
       ekf_.x_ << measurement_pack.raw_measurements_[0],
             measurement_pack.raw_measurements_[1],
             0,
@@ -102,10 +102,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
 
     // Initializacion covariance matrix Lidar - Radar (1st iteration)
-     ekf_.P_ <<  1, 0, 0, 0,
-                 0, 1, 0, 0,
-                 0, 0, 10, 0,
-                 0, 0, 0, 10;
+    ekf_.P_ <<  0.05, 0, 0, 0,
+                0, 0.05, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1;
+
 
 
 
@@ -164,9 +165,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     ekf_.H_ = MatrixXd(3, 4);
 
     CalculateJacobianAndMeas(ekf_.x_);
-    ekf_.UpdateEKF(measurement_pack.raw_measurements_);
-
-
+    if (!err_meas_){
+      ekf_.UpdateEKF(measurement_pack.raw_measurements_);
+    }
+    
 
   } else {
     // Laser updates
@@ -185,8 +187,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   }
 
   // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
+  //cout << "x_ = " << ekf_.x_ << endl;
+  //cout << "P_ = " << ekf_.P_ << endl;
 }
 
 void FusionEKF::CalculateJacobianAndMeas(const VectorXd &x_state) {
@@ -198,23 +200,28 @@ void FusionEKF::CalculateJacobianAndMeas(const VectorXd &x_state) {
   float vy = x_state(3);
 
   // check division by zero
-  if ((px==0) && (py==0)) {
-      cout << "Error: px and py are 0" << endl << Hj_ << endl;
+  if ((px<0.0001) && (py<0.0001)) {
+      cout << "Error: px and py are 0 - Discarded meas" << endl << endl;
+      err_meas_ = true;
     return;
     };
-     // compute the Jacobian matrix
-    float powerP = pow(px,2) + pow(py,2);
-    float den = sqrt(powerP);
-    float den2 = pow(den,3);
-    
-    Hj_ << px/den,                     py/den,                      0,      0,
-          -py/powerP,                  px/powerP,                   0,      0,
-          py*(vx*py - vy*px)/den2,     px*(vy*px - vx*py)/den2,     px/den, py/den;
-  
+  err_meas_=false;
+  // compute the Jacobian matrix
+  float powerP = pow(px,2) + pow(py,2);
+  float den = sqrt(powerP);
+  float den2 = pow(den,3);
+
+  Hj_ << px/den,                     py/den,                      0,      0,
+        -py/powerP,                  px/powerP,                   0,      0,
+        py*(vx*py - vy*px)/den2,     px*(vy*px - vx*py)/den2,     px/den, py/den;
+
   //Update measurement vector
 
-  ekf_.h_ << den, atan2(py,px), (px*vx +py*vy) / den;
-  ekf_.h_= ekf_.h_ +  Hj_*x_state;
+  float atanNorm =  atan2(py,px);
+
+  ekf_.h_ << den, atanNorm,  (px*vx +py*vy) / den;
+  //ekf_.h_= ekf_.h_ +  Hj_*x_state;
+
   ekf_.H_ =  Hj_;
 
 
