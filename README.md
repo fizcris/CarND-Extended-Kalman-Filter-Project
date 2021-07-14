@@ -93,4 +93,7 @@ Matlab scripts that can generate additional data.
 
 ## Usefull resources
 * [Excellent Kalman tutorial](http://home.wlu.edu/~levys/kalman_tutorial/) 
-* [Good presentation ](http://biorobotics.ri.cmu.edu/papers/sbp_papers/integrated3/kleeman_kalman_basics.pdf)
+* [Unscented Kalman Filter](https://www.seas.harvard.edu/courses/cs281/papers/unscented.pdf)
+* [introduction of Kalman Filter](https://www.mathworks.com/videos/series/understanding-kalman-filters.html)
+* [Kalman Tutorial](https://simondlevy.academic.wlu.edu/kalman-tutorial/)
+* [Kalman Filtering Tutorial](http://biorobotics.ri.cmu.edu/papers/sbp_papers/integrated3/kleeman_kalman_basics.pdf)
